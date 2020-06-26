@@ -80,8 +80,6 @@ public class SpreadMoneyService {
 
     divideSpreadMoney.setReceiveUserId(userId);
     DivideSpreadMoney receivedDivideSpreadMoney = divideSpreadMoneyRepository.save(divideSpreadMoney);
-
-    log.info("receivedDivideSpreadMoney : {}", receivedDivideSpreadMoney);
     return receivedDivideSpreadMoney;
   }
 

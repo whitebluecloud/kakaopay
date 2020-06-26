@@ -1,12 +1,5 @@
 package com.kakaopay.spread.controller;
 
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import org.hamcrest.Matchers;
@@ -20,6 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -86,16 +83,4 @@ public class SpreadControllerTest {
 //      .andExpect(jsonPath("divideSpreadMoneyList").value(Matchers.hasSize(20)))
 //      .andDo(print());
 //  }
-
-  @Test
-  public void a() throws Exception {
-    mockMvc.perform(get("/test")
-      .characterEncoding("utf-8")
-      .header("X-USER-ID", 1)
-      .header("X-ROOM-ID", "a")
-      .contentType(MediaType.APPLICATION_JSON)
-      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(20).build())))
-      .andExpect(status().isOk())
-      .andDo(print());
-  }
 }

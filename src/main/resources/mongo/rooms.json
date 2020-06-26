@@ -1,8 +1,11 @@
 [
   {
-    "roomId": 1
+    "roomId": "a"
   },
   {
-    "roomId": 2
+    "roomId": "b"
+  },
+  {
+    "roomId": "c"
   }
 ]

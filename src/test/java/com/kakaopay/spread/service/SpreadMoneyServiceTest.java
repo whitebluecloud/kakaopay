@@ -36,12 +36,20 @@ public class SpreadMoneyServiceTest {
   private SpreadTicket expiredSpreadTicket;
   private SpreadTicket notExpiredSpreadTicket;
   private SpreadTicket user1CreatedSpreadTicket;
+  private SpreadTicket expiredReceiveTicket;
+  private SpreadTicket notExpiredReceiveTicket;
+  private List<DivideSpreadMoney> user2ReceivedSpreadMoneyList;
+  private DivideSpreadMoney user1Received500Money;
 
   @Before
   public void setup() {
     expiredSpreadTicket = SpreadTicket.builder().roomId("b").token("err").publishDate(LocalDateTime.now().minusDays(8)).build();
     notExpiredSpreadTicket = SpreadTicket.builder().publishUserId(1).roomId("a").token("abc").publishDate(LocalDateTime.now().minusDays(6)).build();
     user1CreatedSpreadTicket = SpreadTicket.builder().publishUserId(1).roomId("a").token("def").publishDate(LocalDateTime.now()).build();
+    expiredReceiveTicket = SpreadTicket.builder().publishUserId(1).roomId("a").token("abc").publishDate(LocalDateTime.now().minusMinutes(11)).build();
+    notExpiredReceiveTicket = SpreadTicket.builder().roomId("b").token("err").publishDate(LocalDateTime.now().minusMinutes(9)).build();
+    user2ReceivedSpreadMoneyList = List.of(DivideSpreadMoney.builder().receiveUserId(2).amount(500).build(), DivideSpreadMoney.builder().amount(500).build());
+    user1Received500Money = DivideSpreadMoney.builder().amount(500).receiveUserId(1).token("abc").build();
   }
 
   @Test
@@ -75,14 +83,60 @@ public class SpreadMoneyServiceTest {
   }
 
   @Test(expected = NotAllowedReceiveException.class)
-  public void 받기_API_한사용자_두번_받기_시도_테스트() {
-    List<DivideSpreadMoney> alreadyUser2ReceivedSpreadMoneyList = List.of(DivideSpreadMoney.builder().receiveUserId(2).amount(500).build(), DivideSpreadMoney.builder().amount(500).build());
+  public void 받기_API_한사용자_두번_받기_테스트() {
+
     given(spreadTicketRepository.findByTokenAndRoomId("abc", "a"))
       .willReturn(user1CreatedSpreadTicket);
     given(divideSpreadMoneyRepository.findAllByToken("abc"))
-      .willReturn(alreadyUser2ReceivedSpreadMoneyList);
+      .willReturn(user2ReceivedSpreadMoneyList);
 
     when(spreadMoneyService.receiveMoney(2, "a", "abc"))
       .thenThrow(new NotAllowedReceiveException(NotAllowedReceiveConstant.이미_받은_뿌리기_받기_에러.getMsg()));
   }
+
+  @Test(expected = NotAllowedReceiveException.class)
+  public void 받기_API_뿌린_사용자_직접_받기_테스트() {
+
+    given(spreadTicketRepository.findByTokenAndRoomId("abc", "a"))
+      .willReturn(user1CreatedSpreadTicket);
+    given(divideSpreadMoneyRepository.findAllByToken("abc"))
+      .willReturn(user2ReceivedSpreadMoneyList);
+
+    when(spreadMoneyService.receiveMoney(2, "a", "abc"))
+      .thenThrow(new NotAllowedReceiveException(NotAllowedReceiveConstant.본인_뿌리기_받기_에러.getMsg()));
+  }
+
+//  @Test(expected = NotAllowedReceiveException.class)
+//  public void 받기_API_다른방_사용자_받기_테스트() {
+//
+//    given(spreadTicketRepository.findByTokenAndRoomId("abc", "a"))
+//      .willReturn(user1CreatedSpreadTicket);
+//    given(divideSpreadMoneyRepository.findAllByToken("abc"))
+//      .willReturn(user2ReceivedSpreadMoneyList);
+//
+//    when(spreadMoneyService.receiveMoney(3, "a", "abc"))
+//      .thenThrow(new NotAllowedReceiveException(NotAllowedReceiveConstant.본인_뿌리기_받기_에러.getMsg()));
+//  }
+
+  @Test
+  public void 받기_API_9분_지난_티켓_받기_테스트() {
+    given(spreadTicketRepository.findByTokenAndRoomId("abc", "b"))
+      .willReturn(notExpiredReceiveTicket);
+    given(divideSpreadMoneyRepository.findAllByToken("abc"))
+      .willReturn(user2ReceivedSpreadMoneyList);
+
+    when(spreadMoneyService.receiveMoney(1, "b", "abc")).thenReturn(user1Received500Money);
+  }
+
+  @Test(expected = NotAllowedReceiveException.class)
+  public void 받기_API_11분_지난_티켓_받기_테스트() {
+    given(spreadTicketRepository.findByTokenAndRoomId("abc", "b"))
+      .willReturn(expiredSpreadTicket);
+    given(divideSpreadMoneyRepository.findAllByToken("abc"))
+      .willReturn(user2ReceivedSpreadMoneyList);
+
+    when(spreadMoneyService.receiveMoney(1, "b", "abc"))
+      .thenThrow(new NotAllowedReceiveException(NotAllowedReceiveConstant.만료된_뿌리기_받기_에러.getMsg()));
+  }
+
 }
