@@ -20,4 +20,8 @@ public class SpreadTicket {
   private long headCount;
   private LocalDateTime publishDate;
   private List<DivideSpreadMoney> divideSpreadMoneyList;
+
+  public boolean isExpired(LocalDateTime now) {
+    return publishDate.plusDays(7).isAfter(now);
+  }
 }

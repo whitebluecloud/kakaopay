@@ -5,7 +5,10 @@ import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.domain.SpreadTicketFactory;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
+import com.kakaopay.spread.repository.SpreadTicketRepository;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,9 @@ import java.util.Random;
 @Service
 @Slf4j
 public class SpreadMoneyService {
+
+  @Autowired
+  private SpreadTicketRepository spreadTicketRepository;
 
   @Autowired
   private DivideSpreadMoneyRepository divideSpreadMoneyRepository;
@@ -35,7 +41,7 @@ public class SpreadMoneyService {
       throw new RuntimeException();
     }
 
-    ArrayList<Long> moneyList = new ArrayList<>();
+    List<Long> moneyList = new ArrayList<>();
     long amount = spreadRequestDto.getAmount();
     int headCount = spreadRequestDto.getHeadCount();
     do {
@@ -71,5 +77,28 @@ public class SpreadMoneyService {
       }
     }
     return sb.toString();
+  }
+
+  public SpreadTicket getSpreadTicket(String token, long userId, String roomId) {
+
+    SpreadTicket spreadTicket = spreadTicketRepository.findByTokenAndRoomId(token, roomId);
+
+    if (spreadTicket == null) {
+      throw new RuntimeException("유효한 뿌리기 정보가 아닙니다.");
+    }
+
+    if (isOwnSpreadTicket(spreadTicket, userId)) {
+      throw new RuntimeException("본인의 뿌리기 정보만 볼 수 있습니다.");
+    }
+
+    if (spreadTicket.isExpired(LocalDateTime.now())) {
+      throw new RuntimeException("해당 뿌리기는 만료되었습니다.");
+    }
+
+    return spreadTicket;
+  }
+
+  private boolean isOwnSpreadTicket(SpreadTicket spreadTicket, long userId) {
+    return spreadTicket.getPublishUserId() == userId;
   }
 }

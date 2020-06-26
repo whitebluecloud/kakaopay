@@ -16,5 +16,4 @@ public class SpreadTicketFactory {
       .divideSpreadMoneyList(divideSpreadMoneyList)
       .build();
   }
-
 }

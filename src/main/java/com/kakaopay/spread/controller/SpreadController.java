@@ -40,15 +40,16 @@ public class SpreadController {
   }
 
   /**
-   * TODO 뿌리기 시 발급된 token을 요청값으로 받습니다. TODO token에 해당하는 뿌리기 건의 현재 상태를 응답값으로 내려줍니다. 현재 상태는 다음의 정보를 포함합니다.
+   * TODO token에 해당하는 뿌리기 건의 현재 상태를 응답값으로 내려줍니다. 현재 상태는 다음의 정보를 포함합니다.
    * TODO 뿌린 시각, 뿌린 금액, 받기 완료된 금액, 받기 완료된 정보 ([받은 금액, 받은 사용자 아이디] 리스트)
    * TODO 뿌린 사람 자신만 조회를 할 수 있습니다. 다른사람의 뿌리기건이나 유효하지 않은 token에 대해서는 조회 실패 응답이 내려가야 합니다.
    * TODO 뿌린 건에 대한 조회는 7일 동안 할 수 있습니다
    */
-  @GetMapping("/spread")
-  public void getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
+  @GetMapping("/spread/{token}")
+  public SpreadResponseDto getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
     @RequestHeader(name = "X-ROOM-ID") String roomId,
-    @RequestBody String token) {
-
+    @PathVariable(name = "token") String token) {
+    SpreadTicket spreadTicket = spreadMoneyService.getSpreadTicket(token, userId, roomId);
+    return SpreadResponseDto.of(spreadTicket);
   }
 }
