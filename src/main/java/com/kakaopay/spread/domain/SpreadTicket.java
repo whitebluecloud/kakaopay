@@ -22,6 +22,6 @@ public class SpreadTicket {
   private List<DivideSpreadMoney> divideSpreadMoneyList;
 
   public boolean isExpired(LocalDateTime now) {
-    return publishDate.plusDays(7).isAfter(now);
+    return publishDate.plusDays(7).isBefore(now);
   }
 }

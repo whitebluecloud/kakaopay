@@ -12,5 +12,5 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class DivideSpreadMoney {
   private String token;
   private long amount;
-  private String receiveUserId;
+  private long receiveUserId;
 }

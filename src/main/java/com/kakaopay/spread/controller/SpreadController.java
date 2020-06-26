@@ -3,6 +3,7 @@ package com.kakaopay.spread.controller;
 import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import com.kakaopay.spread.dto.spread.SpreadResponseDto;
+import com.kakaopay.spread.repository.RoomRepository;
 import com.kakaopay.spread.service.SpreadMoneyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,23 +34,30 @@ public class SpreadController {
    * TODO 뿌리기가 호출된 대화방과 동일한 대화방에 속한 사용자만이 받을 수 있습니다.
    * TODO 뿌린 건은 10분간만 유효합니다. 뿌린지 10분이 지난 요청에 대해서는 받기 실패 응답이 내려가야 합니다.
    */
-  @PutMapping("/spread")
-  public void receiveMoney(@RequestHeader(name = "X-USER-ID") long userId,
-    @RequestHeader(name = "X-ROOM-ID") String roomId,
-    @RequestBody String token) {
+  @PutMapping("/spread/{token}")
+  public void receiveSpreadMoney(@RequestHeader(name = "X-USER-ID") long userId,
+                                 @RequestHeader(name = "X-ROOM-ID") String roomId,
+                                 @PathVariable(name = "token") String token) {
+//    spreadMoneyService.receiveMoney();
   }
 
-  /**
-   * TODO token에 해당하는 뿌리기 건의 현재 상태를 응답값으로 내려줍니다. 현재 상태는 다음의 정보를 포함합니다.
-   * TODO 뿌린 시각, 뿌린 금액, 받기 완료된 금액, 받기 완료된 정보 ([받은 금액, 받은 사용자 아이디] 리스트)
-   * TODO 뿌린 사람 자신만 조회를 할 수 있습니다. 다른사람의 뿌리기건이나 유효하지 않은 token에 대해서는 조회 실패 응답이 내려가야 합니다.
-   * TODO 뿌린 건에 대한 조회는 7일 동안 할 수 있습니다
-   */
   @GetMapping("/spread/{token}")
   public SpreadResponseDto getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
-    @RequestHeader(name = "X-ROOM-ID") String roomId,
-    @PathVariable(name = "token") String token) {
+                                         @RequestHeader(name = "X-ROOM-ID") String roomId,
+                                         @PathVariable(name = "token") String token) {
     SpreadTicket spreadTicket = spreadMoneyService.getSpreadTicket(token, userId, roomId);
     return SpreadResponseDto.of(spreadTicket);
   }
+
+  @Autowired
+  RoomRepository roomRepository;
+
+  @GetMapping("/test")
+  public void test() {
+    roomRepository.findAll().forEach(a -> {
+      log.info("{}", a);
+    });
+
+  }
+
 }

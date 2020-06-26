@@ -1,9 +1,11 @@
 package com.kakaopay.spread.controller;
 
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
@@ -72,15 +74,28 @@ public class SpreadControllerTest {
       .andDo(print());
   }
 
+//  @Test
+//  public void 조회_API_테스트() throws Exception {
+//
+//    mockMvc.perform(get("/spread")
+//      .characterEncoding("utf-8")
+//      .header("X-USER-ID", 1)
+//      .header("X-ROOM-ID", "a")
+//      .contentType(MediaType.APPLICATION_JSON)
+//      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(20).build())))
+//      .andExpect(jsonPath("divideSpreadMoneyList").value(Matchers.hasSize(20)))
+//      .andDo(print());
+//  }
+
   @Test
-  public void 조회_API_테스트() throws Exception {
-    mockMvc.perform(get("/spread")
+  public void a() throws Exception {
+    mockMvc.perform(get("/test")
       .characterEncoding("utf-8")
       .header("X-USER-ID", 1)
       .header("X-ROOM-ID", "a")
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(20).build())))
-      .andExpect(jsonPath("divideSpreadMoneyList").value(Matchers.hasSize(20)))
+      .andExpect(status().isOk())
       .andDo(print());
   }
 }

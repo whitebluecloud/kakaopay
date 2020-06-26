@@ -32,9 +32,13 @@ public class SpreadMoneyService {
     List<DivideSpreadMoney> divideSpreadMoneyList = divideMoney(spreadRequestDto, token);
     log.info("token : {} divideSpreadMoneyList : {}", token, divideSpreadMoneyList);
     SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId, divideSpreadMoneyList);
-    log.info("spreadTicket create : {}", spreadTicket);
+    SpreadTicket savedSpreadTicket = spreadTicketRepository.save(spreadTicket);
+    log.info("spreadTicket save: {}", savedSpreadTicket);
     return spreadTicket;
   }
+
+//  public void receiveMoney(long userId, String token) {
+//  }
 
   private List<DivideSpreadMoney> divideMoney(SpreadRequestDto spreadRequestDto, String token) {
     if (!isValidRequst(spreadRequestDto)) {
@@ -56,7 +60,7 @@ public class SpreadMoneyService {
     }while (headCount > 0);
 
     List<DivideSpreadMoney> divideSpreadMoneyList = moneyList.stream()
-      .map(money -> DivideSpreadMoney.builder().amount(money).token(token).receiveUserId("").build())
+      .map(money -> DivideSpreadMoney.builder().amount(money).token(token).build())
       .collect(Collectors.toList());
     List<DivideSpreadMoney> savedDivideSpreadMoneyList = divideSpreadMoneyRepository.saveAll(divideSpreadMoneyList);
     return savedDivideSpreadMoneyList;
@@ -87,7 +91,7 @@ public class SpreadMoneyService {
       throw new RuntimeException("유효한 뿌리기 정보가 아닙니다.");
     }
 
-    if (isOwnSpreadTicket(spreadTicket, userId)) {
+    if (isNotOwnSpreadTicket(spreadTicket, userId)) {
       throw new RuntimeException("본인의 뿌리기 정보만 볼 수 있습니다.");
     }
 
@@ -98,7 +102,7 @@ public class SpreadMoneyService {
     return spreadTicket;
   }
 
-  private boolean isOwnSpreadTicket(SpreadTicket spreadTicket, long userId) {
-    return spreadTicket.getPublishUserId() == userId;
+  private boolean isNotOwnSpreadTicket(SpreadTicket spreadTicket, long userId) {
+    return spreadTicket.getPublishUserId() != userId;
   }
 }
