@@ -1,5 +1,6 @@
 package com.kakaopay.spread.controller;
 
+import com.kakaopay.spread.domain.DivideSpreadMoney;
 import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import com.kakaopay.spread.dto.spread.SpreadResponseDto;
@@ -8,6 +9,8 @@ import com.kakaopay.spread.service.SpreadMoneyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -38,7 +41,7 @@ public class SpreadController {
   public void receiveSpreadMoney(@RequestHeader(name = "X-USER-ID") long userId,
                                  @RequestHeader(name = "X-ROOM-ID") String roomId,
                                  @PathVariable(name = "token") String token) {
-//    spreadMoneyService.receiveMoney();
+    spreadMoneyService.receiveMoney(userId, roomId, token);
   }
 
   @GetMapping("/spread/{token}")
@@ -46,18 +49,7 @@ public class SpreadController {
                                          @RequestHeader(name = "X-ROOM-ID") String roomId,
                                          @PathVariable(name = "token") String token) {
     SpreadTicket spreadTicket = spreadMoneyService.getSpreadTicket(token, userId, roomId);
-    return SpreadResponseDto.of(spreadTicket);
+    List<DivideSpreadMoney> divideSpreadMoneyList = spreadMoneyService.getDivideSpreadMoneyList(token);
+    return SpreadResponseDto.of(spreadTicket, divideSpreadMoneyList);
   }
-
-  @Autowired
-  RoomRepository roomRepository;
-
-  @GetMapping("/test")
-  public void test() {
-    roomRepository.findAll().forEach(a -> {
-      log.info("{}", a);
-    });
-
-  }
-
 }

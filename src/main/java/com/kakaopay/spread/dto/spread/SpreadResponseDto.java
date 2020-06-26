@@ -28,9 +28,19 @@ public class SpreadResponseDto {
     return SpreadResponseDto.builder()
       .token(spreadTicket.getToken())
       .amount(spreadTicket.getAmount())
+      .receivedAmount(0)
+      .headCount(spreadTicket.getHeadCount())
+      .divideSpreadMoneyList(List.of())
+      .publishDate(spreadTicket.getPublishDate())
+      .build();
+  }
+
+  public static SpreadResponseDto of(SpreadTicket spreadTicket, List<DivideSpreadMoney> divideSpreadMoneyList) {
+    return SpreadResponseDto.builder()
+      .token(spreadTicket.getToken())
+      .amount(spreadTicket.getAmount())
       .receivedAmount(
-        spreadTicket
-          .getDivideSpreadMoneyList()
+        divideSpreadMoneyList
           .stream()
           .filter(divideSpreadMoney -> divideSpreadMoney.getReceiveUserId() != 0)
           .map(DivideSpreadMoney::getAmount)
@@ -38,7 +48,7 @@ public class SpreadResponseDto {
           .sum()
       )
       .headCount(spreadTicket.getHeadCount())
-      .divideSpreadMoneyList(spreadTicket.getDivideSpreadMoneyList())
+      .divideSpreadMoneyList(divideSpreadMoneyList)
       .publishDate(spreadTicket.getPublishDate())
       .build();
   }

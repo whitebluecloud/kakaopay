@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class SpreadTicketFactory {
-  public static SpreadTicket create(SpreadRequestDto spreadRequestDto, String token, long userId, String roomId, List<DivideSpreadMoney> divideSpreadMoneyList) {
+  public static SpreadTicket create(SpreadRequestDto spreadRequestDto, String token, long userId, String roomId) {
     return SpreadTicket.builder()
       .amount(spreadRequestDto.getAmount())
       .headCount(spreadRequestDto.getHeadCount())
@@ -13,7 +13,6 @@ public class SpreadTicketFactory {
       .token(token)
       .publishUserId(userId)
       .publishDate(LocalDateTime.now())
-      .divideSpreadMoneyList(divideSpreadMoneyList)
       .build();
   }
 }

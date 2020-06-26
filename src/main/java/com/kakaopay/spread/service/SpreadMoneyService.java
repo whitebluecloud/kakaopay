@@ -6,10 +6,12 @@ import com.kakaopay.spread.domain.SpreadTicketFactory;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
 import com.kakaopay.spread.repository.SpreadTicketRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,16 +31,56 @@ public class SpreadMoneyService {
 
   public SpreadTicket spreadMoney(SpreadRequestDto spreadRequestDto, long userId, String roomId) {
     String token = makeToken();
-    List<DivideSpreadMoney> divideSpreadMoneyList = divideMoney(spreadRequestDto, token);
-    log.info("token : {} divideSpreadMoneyList : {}", token, divideSpreadMoneyList);
-    SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId, divideSpreadMoneyList);
+    log.info("token : {}", token);
+
+    SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId);
     SpreadTicket savedSpreadTicket = spreadTicketRepository.save(spreadTicket);
     log.info("spreadTicket save: {}", savedSpreadTicket);
+
+    List<DivideSpreadMoney> divideSpreadMoneyList = divideMoney(spreadRequestDto, token);
+    divideSpreadMoneyRepository.saveAll(divideSpreadMoneyList);
+    log.info("divideSpreadMoneyList : {}", divideSpreadMoneyList);
+
     return spreadTicket;
   }
 
-//  public void receiveMoney(long userId, String token) {
-//  }
+  public DivideSpreadMoney receiveMoney(long userId, String roomId, String token) {
+
+    SpreadTicket spreadTicket = spreadTicketRepository.findByTokenAndRoomId(token, roomId);
+
+    List<DivideSpreadMoney> divideSpreadMoneyList = divideSpreadMoneyRepository.findAllByToken(token);
+
+    boolean isAlreadyReceived = divideSpreadMoneyList.stream().anyMatch(money -> userId == money.getReceiveUserId());
+    if (isAlreadyReceived) {
+      throw new RuntimeException("이미 받은 뿌리기 입니다.");
+    }
+
+    boolean isOwnSpreadMoney = userId == spreadTicket.getPublishUserId();
+    if (isOwnSpreadMoney) {
+      throw new RuntimeException("자신이 뿌린 뿌리기는 받을 수 없습니다.");
+    }
+
+    boolean isNotRoomMember = !spreadTicket.getRoomId().equalsIgnoreCase(roomId);
+    if (isNotRoomMember) {
+      throw new RuntimeException("다른 대화방 사용자는 해당 뿌리기를 받을 수 없습니다.");
+    }
+
+    boolean isReceiveExpired= spreadTicket.getPublishDate().plusMinutes(10).isBefore(LocalDateTime.now());
+    if (isReceiveExpired) {
+      throw new RuntimeException("만료된 뿌리기 입니다.");
+    }
+
+    DivideSpreadMoney divideSpreadMoney = divideSpreadMoneyList.stream()
+      .filter(DivideSpreadMoney::isNotReceived)
+      .findAny()
+      .orElseThrow(() -> new RuntimeException("받을 수 있는 뿌리기가 없습니다."));
+
+    divideSpreadMoney.setReceiveUserId(userId);
+    DivideSpreadMoney receivedDivideSpreadMoney = divideSpreadMoneyRepository.save(divideSpreadMoney);
+
+    log.info("receivedDivideSpreadMoney : {}", receivedDivideSpreadMoney);
+    return receivedDivideSpreadMoney;
+  }
 
   private List<DivideSpreadMoney> divideMoney(SpreadRequestDto spreadRequestDto, String token) {
     if (!isValidRequst(spreadRequestDto)) {
@@ -57,7 +99,7 @@ public class SpreadMoneyService {
       moneyList.add(randomAmount);
       amount -= randomAmount;
       headCount--;
-    }while (headCount > 0);
+    } while (headCount > 0);
 
     List<DivideSpreadMoney> divideSpreadMoneyList = moneyList.stream()
       .map(money -> DivideSpreadMoney.builder().amount(money).token(token).build())
@@ -73,10 +115,10 @@ public class SpreadMoneyService {
   private String makeToken() {
     Random random = new Random();
     StringBuilder sb = new StringBuilder();
-    for(int i = 0; i < 3; i++){
-      if(random.nextBoolean()){
-        sb.append((char)(random.nextInt(26) +97));
-      }else{
+    for (int i = 0; i < 3; i++) {
+      if (random.nextBoolean()) {
+        sb.append((char) (random.nextInt(26) + 97));
+      } else {
         sb.append((random.nextInt(10)));
       }
     }
@@ -100,6 +142,11 @@ public class SpreadMoneyService {
     }
 
     return spreadTicket;
+  }
+
+  public List<DivideSpreadMoney> getDivideSpreadMoneyList(String token) {
+    // TODO 예외처리
+    return divideSpreadMoneyRepository.findAllByToken(token);
   }
 
   private boolean isNotOwnSpreadTicket(SpreadTicket spreadTicket, long userId) {
