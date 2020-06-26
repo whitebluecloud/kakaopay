@@ -1,7 +1,14 @@
 package com.kakaopay.spread.service;
 
-import com.kakaopay.spread.dto.SpreadDto;
+import com.kakaopay.spread.domain.DivideSpreadMoney;
+import com.kakaopay.spread.domain.SpreadTicket;
+import com.kakaopay.spread.domain.SpreadTicketFactory;
+import com.kakaopay.spread.dto.spread.SpreadRequestDto;
+import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,48 +18,58 @@ import java.util.Random;
 @Slf4j
 public class SpreadMoneyService {
 
-  public void spreadMoney(SpreadDto spreadDto, long userId, String roomId) {
-    ArrayList<Long> dividedMoney = divideMoney(spreadDto);
+  @Autowired
+  private DivideSpreadMoneyRepository divideSpreadMoneyRepository;
+
+  public SpreadTicket spreadMoney(SpreadRequestDto spreadRequestDto, long userId, String roomId) {
     String token = makeToken();
-    log.info("{}", token);
+    List<DivideSpreadMoney> divideSpreadMoneyList = divideMoney(spreadRequestDto, token);
+    log.info("token : {} divideSpreadMoneyList : {}", token, divideSpreadMoneyList);
+
+    SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId);
+    return spreadTicket;
   }
 
-  private ArrayList<Long> divideMoney(SpreadDto spreadDto) {
-    if (!isValidRequst(spreadDto)) {
+  private List<DivideSpreadMoney> divideMoney(SpreadRequestDto spreadRequestDto, String token) {
+    if (!isValidRequst(spreadRequestDto)) {
       throw new RuntimeException();
     }
 
-    ArrayList<Long> dividedMoney = new ArrayList<>();
-    long amount = spreadDto.getAmount();
-    int headCount = spreadDto.getHeadCount();
+    ArrayList<Long> moneyList = new ArrayList<>();
+    long amount = spreadRequestDto.getAmount();
+    int headCount = spreadRequestDto.getHeadCount();
     do {
       if (headCount == 1) {
-        dividedMoney.add(amount);
+        moneyList.add(amount);
         break;
       }
       long randomAmount = (long) (Math.random() * amount / headCount) + 1;
-      dividedMoney.add(randomAmount);
+      moneyList.add(randomAmount);
       amount -= randomAmount;
       headCount--;
     }while (headCount > 0);
 
-    return dividedMoney;
+    List<DivideSpreadMoney> divideSpreadMoneyList = moneyList.stream()
+      .map(money -> DivideSpreadMoney.builder().amount(money).token(token).receiveUserId("").build())
+      .collect(Collectors.toList());
+    List<DivideSpreadMoney> savedDivideSpreadMoneyList = divideSpreadMoneyRepository.saveAll(divideSpreadMoneyList);
+    return savedDivideSpreadMoneyList;
   }
 
-  private boolean isValidRequst(SpreadDto spreadDto) {
+  private boolean isValidRequst(SpreadRequestDto spreadRequestDto) {
     return true;
   }
 
   private String makeToken() {
     Random random = new Random();
-    StringBuffer buf = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for(int i = 0; i < 3; i++){
       if(random.nextBoolean()){
-        buf.append((char)(random.nextInt(26) +97));
+        sb.append((char)(random.nextInt(26) +97));
       }else{
-        buf.append((random.nextInt(10)));
+        sb.append((random.nextInt(10)));
       }
     }
-    return buf.toString();
+    return sb.toString();
   }
 }
