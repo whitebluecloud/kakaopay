@@ -4,12 +4,15 @@ import com.kakaopay.spread.domain.DivideSpreadMoney;
 import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.domain.SpreadTicketFactory;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
+import com.kakaopay.spread.exception.NotAllowedGetTicketInfoException;
+import com.kakaopay.spread.exception.NotAllowedReceiveException;
+import com.kakaopay.spread.exception.constant.NotAllowedGetTicketInfoConstant;
+import com.kakaopay.spread.exception.constant.NotAllowedReceiveConstant;
 import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
 import com.kakaopay.spread.repository.SpreadTicketRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,28 +55,28 @@ public class SpreadMoneyService {
 
     boolean isAlreadyReceived = divideSpreadMoneyList.stream().anyMatch(money -> userId == money.getReceiveUserId());
     if (isAlreadyReceived) {
-      throw new RuntimeException("이미 받은 뿌리기 입니다.");
+      throw new NotAllowedReceiveException(NotAllowedReceiveConstant.이미_받은_뿌리기_받기_에러.getMsg());
     }
 
     boolean isOwnSpreadMoney = userId == spreadTicket.getPublishUserId();
     if (isOwnSpreadMoney) {
-      throw new RuntimeException("자신이 뿌린 뿌리기는 받을 수 없습니다.");
+      throw new NotAllowedReceiveException(NotAllowedReceiveConstant.본인_뿌리기_받기_에러.getMsg());
     }
 
     boolean isNotRoomMember = !spreadTicket.getRoomId().equalsIgnoreCase(roomId);
     if (isNotRoomMember) {
-      throw new RuntimeException("다른 대화방 사용자는 해당 뿌리기를 받을 수 없습니다.");
+      throw new NotAllowedReceiveException(NotAllowedReceiveConstant.타_대화방_멤버_받기_에러.getMsg());
     }
 
     boolean isReceiveExpired= spreadTicket.getPublishDate().plusMinutes(10).isBefore(LocalDateTime.now());
     if (isReceiveExpired) {
-      throw new RuntimeException("만료된 뿌리기 입니다.");
+      throw new NotAllowedReceiveException(NotAllowedReceiveConstant.만료된_뿌리기_받기_에러.getMsg());
     }
 
     DivideSpreadMoney divideSpreadMoney = divideSpreadMoneyList.stream()
       .filter(DivideSpreadMoney::isNotReceived)
       .findAny()
-      .orElseThrow(() -> new RuntimeException("받을 수 있는 뿌리기가 없습니다."));
+      .orElseThrow(() -> new RuntimeException(NotAllowedReceiveConstant.다_받은_뿌리기_받기_에러.getMsg()));
 
     divideSpreadMoney.setReceiveUserId(userId);
     DivideSpreadMoney receivedDivideSpreadMoney = divideSpreadMoneyRepository.save(divideSpreadMoney);
@@ -126,21 +129,16 @@ public class SpreadMoneyService {
   }
 
   public SpreadTicket getSpreadTicket(String token, long userId, String roomId) {
-
     SpreadTicket spreadTicket = spreadTicketRepository.findByTokenAndRoomId(token, roomId);
-
     if (spreadTicket == null) {
-      throw new RuntimeException("유효한 뿌리기 정보가 아닙니다.");
+      throw new NotAllowedGetTicketInfoException(NotAllowedGetTicketInfoConstant.유효하지않은_티켓_조회_에러.getMsg());
     }
-
     if (isNotOwnSpreadTicket(spreadTicket, userId)) {
-      throw new RuntimeException("본인의 뿌리기 정보만 볼 수 있습니다.");
+      throw new NotAllowedGetTicketInfoException(NotAllowedGetTicketInfoConstant.타인_뿌리기_조회_에러.getMsg());
     }
-
     if (spreadTicket.isExpired(LocalDateTime.now())) {
-      throw new RuntimeException("해당 뿌리기는 만료되었습니다.");
+      throw new NotAllowedGetTicketInfoException(NotAllowedGetTicketInfoConstant.만료된_티켓_조회_에러.getMsg());
     }
-
     return spreadTicket;
   }
 

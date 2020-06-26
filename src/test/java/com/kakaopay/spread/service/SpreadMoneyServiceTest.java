@@ -2,6 +2,10 @@ package com.kakaopay.spread.service;
 
 import com.kakaopay.spread.domain.DivideSpreadMoney;
 import com.kakaopay.spread.domain.SpreadTicket;
+import com.kakaopay.spread.exception.NotAllowedGetTicketInfoException;
+import com.kakaopay.spread.exception.NotAllowedReceiveException;
+import com.kakaopay.spread.exception.constant.NotAllowedGetTicketInfoConstant;
+import com.kakaopay.spread.exception.constant.NotAllowedReceiveConstant;
 import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
 import com.kakaopay.spread.repository.SpreadTicketRepository;
 import org.junit.Before;
@@ -46,31 +50,39 @@ public class SpreadMoneyServiceTest {
     when(spreadMoneyService.getSpreadTicket("abc", 1, "a")).thenReturn(notExpiredSpreadTicket);
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = NotAllowedGetTicketInfoException.class)
   public void 조회_API_만료된_토큰_조회_테스트() {
-    given(spreadTicketRepository.findByTokenAndRoomId("err", "b")).willReturn(expiredSpreadTicket);
-    when(spreadMoneyService.getSpreadTicket("err", 1, "b")).thenThrow(new RuntimeException("해당 뿌리기는 만료되었습니다."));
+    given(spreadTicketRepository.findByTokenAndRoomId("err", "b"))
+      .willReturn(expiredSpreadTicket);
+    when(spreadMoneyService.getSpreadTicket("err", 1, "b"))
+      .thenThrow(new NotAllowedGetTicketInfoException(NotAllowedGetTicketInfoConstant.만료된_티켓_조회_에러.getMsg()));
   }
 
   @Test
   public void 조회_API_토큰_생성자_호출_조회_테스트() {
-    given(spreadTicketRepository.findByTokenAndRoomId("def", "a")).willReturn(user1CreatedSpreadTicket);
-    when(spreadMoneyService.getSpreadTicket("def", 1, "a")).thenReturn(user1CreatedSpreadTicket);
+    given(spreadTicketRepository.findByTokenAndRoomId("def", "a"))
+      .willReturn(user1CreatedSpreadTicket);
+    when(spreadMoneyService.getSpreadTicket("def", 1, "a"))
+      .thenReturn(user1CreatedSpreadTicket);
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = NotAllowedGetTicketInfoException.class)
   public void 조회_API_토큰_비생성자_호출_조회_테스트() {
-    given(spreadTicketRepository.findByTokenAndRoomId("def", "a")).willReturn(user1CreatedSpreadTicket);
-    when(spreadMoneyService.getSpreadTicket("def", 2, "a")).thenThrow(new RuntimeException("본인의 뿌리기 정보만 볼 수 있습니다."));
+    given(spreadTicketRepository.findByTokenAndRoomId("def", "a"))
+      .willReturn(user1CreatedSpreadTicket);
+    when(spreadMoneyService.getSpreadTicket("def", 2, "a"))
+      .thenThrow(new NotAllowedGetTicketInfoException(NotAllowedGetTicketInfoConstant.타인_뿌리기_조회_에러.getMsg()));
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = NotAllowedReceiveException.class)
   public void 받기_API_한사용자_두번_받기_시도_테스트() {
-    SpreadTicket spreadTicket = SpreadTicket.builder().publishUserId(1).roomId("a").token("abc").amount(1000).publishDate(LocalDateTime.now()).headCount(2).build();
     List<DivideSpreadMoney> alreadyUser2ReceivedSpreadMoneyList = List.of(DivideSpreadMoney.builder().receiveUserId(2).amount(500).build(), DivideSpreadMoney.builder().amount(500).build());
-    given(spreadTicketRepository.findByTokenAndRoomId("abc", "a")).willReturn(user1CreatedSpreadTicket);
-    given(divideSpreadMoneyRepository.findAllByToken("abc")).willReturn(alreadyUser2ReceivedSpreadMoneyList);
+    given(spreadTicketRepository.findByTokenAndRoomId("abc", "a"))
+      .willReturn(user1CreatedSpreadTicket);
+    given(divideSpreadMoneyRepository.findAllByToken("abc"))
+      .willReturn(alreadyUser2ReceivedSpreadMoneyList);
 
-    when(spreadMoneyService.receiveMoney(2, "a", "abc")).thenThrow(new RuntimeException("이미 받은 뿌리기 입니다."));
+    when(spreadMoneyService.receiveMoney(2, "a", "abc"))
+      .thenThrow(new NotAllowedReceiveException(NotAllowedReceiveConstant.이미_받은_뿌리기_받기_에러.getMsg()));
   }
 }
