@@ -19,5 +19,5 @@ public class SpreadTicket {
   private long amount;
   private long headCount;
   private LocalDateTime publishDate;
-
+  private List<DivideSpreadMoney> divideSpreadMoneyList;
 }

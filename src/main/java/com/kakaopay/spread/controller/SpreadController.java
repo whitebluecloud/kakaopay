@@ -4,10 +4,12 @@ import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.dto.spread.SpreadRequestDto;
 import com.kakaopay.spread.dto.spread.SpreadResponseDto;
 import com.kakaopay.spread.service.SpreadMoneyService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Slf4j
 public class SpreadController {
 
   @Autowired
@@ -18,7 +20,10 @@ public class SpreadController {
     @RequestHeader(name = "X-USER-ID") long userId,
     @RequestHeader(name = "X-ROOM-ID") String roomId,
     @RequestBody SpreadRequestDto spreadRequestDto) {
-    return SpreadResponseDto.of(spreadMoneyService.spreadMoney(spreadRequestDto, userId, roomId));
+
+    SpreadResponseDto spreadResponseDto = SpreadResponseDto.of(spreadMoneyService.spreadMoney(spreadRequestDto, userId, roomId));
+    log.info("spread result : {}", spreadResponseDto);
+    return spreadResponseDto;
   }
 
   /**
@@ -40,7 +45,7 @@ public class SpreadController {
    * TODO 뿌린 사람 자신만 조회를 할 수 있습니다. 다른사람의 뿌리기건이나 유효하지 않은 token에 대해서는 조회 실패 응답이 내려가야 합니다.
    * TODO 뿌린 건에 대한 조회는 7일 동안 할 수 있습니다
    */
-//  @GetMapping("/spread")
+  @GetMapping("/spread")
   public void getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
     @RequestHeader(name = "X-ROOM-ID") String roomId,
     @RequestBody String token) {

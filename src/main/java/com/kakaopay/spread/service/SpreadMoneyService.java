@@ -25,8 +25,8 @@ public class SpreadMoneyService {
     String token = makeToken();
     List<DivideSpreadMoney> divideSpreadMoneyList = divideMoney(spreadRequestDto, token);
     log.info("token : {} divideSpreadMoneyList : {}", token, divideSpreadMoneyList);
-
-    SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId);
+    SpreadTicket spreadTicket = SpreadTicketFactory.create(spreadRequestDto, token, userId, roomId, divideSpreadMoneyList);
+    log.info("spreadTicket create : {}", spreadTicket);
     return spreadTicket;
   }
 
