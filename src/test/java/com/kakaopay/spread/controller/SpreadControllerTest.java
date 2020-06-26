@@ -1,7 +1,7 @@
 package com.kakaopay.spread.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kakaopay.spread.dto.spread.SpreadRequestDto;
+import com.kakaopay.spread.dto.spread.SpreadCreateReqDto;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class SpreadControllerTest {
       .header("X-USER-ID", 1)
       .header("X-ROOM-ID", "a")
       .contentType(MediaType.APPLICATION_JSON)
-      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(1).build())))
+      .content(objectMapper.writeValueAsString(SpreadCreateReqDto.builder().amount(1000).headCount(1).build())))
       .andExpect(MockMvcResultMatchers.status().isOk())
       .andExpect(jsonPath("token").value(Matchers.hasLength(3)))
       .andDo(print());
@@ -53,34 +53,9 @@ public class SpreadControllerTest {
       .header("X-USER-ID", 1)
       .header("X-ROOM-ID", "a")
       .contentType(MediaType.APPLICATION_JSON)
-      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(1).build())))
+      .content(objectMapper.writeValueAsString(SpreadCreateReqDto.builder().amount(1000).headCount(1).build())))
       .andExpect(MockMvcResultMatchers.status().isOk())
       .andExpect(jsonPath("token").value(Matchers.hasLength(3)))
       .andDo(print());
   }
-
-  @Test
-  public void 뿌리기_API_요청인원_나누기_테스트() throws Exception {
-    mockMvc.perform(post("/spread")
-      .characterEncoding("utf-8")
-      .header("X-USER-ID", 1)
-      .header("X-ROOM-ID", "a")
-      .contentType(MediaType.APPLICATION_JSON)
-      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(20).build())))
-      .andExpect(jsonPath("divideSpreadMoneyList").value(Matchers.hasSize(20)))
-      .andDo(print());
-  }
-
-//  @Test
-//  public void 조회_API_테스트() throws Exception {
-//
-//    mockMvc.perform(get("/spread")
-//      .characterEncoding("utf-8")
-//      .header("X-USER-ID", 1)
-//      .header("X-ROOM-ID", "a")
-//      .contentType(MediaType.APPLICATION_JSON)
-//      .content(objectMapper.writeValueAsString(SpreadRequestDto.builder().amount(1000).headCount(20).build())))
-//      .andExpect(jsonPath("divideSpreadMoneyList").value(Matchers.hasSize(20)))
-//      .andDo(print());
-//  }
 }

@@ -63,27 +63,27 @@ public class ReceiveSpreadMoneyTest {
       .andDo(print());
   }
 
-  @Test
-  public void 만료된_토큰_조회_테스트() throws Exception {
-    SpreadResponseDto spreadResponseDto =
-      SpreadResponseDto.builder()
-        .token("err")
-        .receivedAmount(1000L)
-        .divideSpreadMoneyList(List.of(
-          DivideSpreadMoney.builder().receiveUserId(1).amount(450L).build(),
-          DivideSpreadMoney.builder().receiveUserId(2).amount(300L).build(),
-          DivideSpreadMoney.builder().receiveUserId(3).amount(250L).build()
-          )
-        )
-        .publishDate(LocalDateTime.now().minusDays(8))
-        .build();
-
-    given(spreadController.getSpreadInfo(2, "b", "err")).willThrow();
-
-    mockMvc.perform(get("/spread/err")
-      .header("X-USER-ID", 2)
-      .header("X-ROOM-ID", "b")
-    ).andExpect(status().is4xxClientError())
-      .andDo(print());
-  }
+//  @Test
+//  public void 만료된_토큰_조회_테스트() throws Exception {
+//    SpreadResponseDto spreadResponseDto =
+//      SpreadResponseDto.builder()
+//        .token("err")
+//        .receivedAmount(1000L)
+//        .divideSpreadMoneyList(List.of(
+//          DivideSpreadMoney.builder().receiveUserId(1).amount(450L).build(),
+//          DivideSpreadMoney.builder().receiveUserId(2).amount(300L).build(),
+//          DivideSpreadMoney.builder().receiveUserId(3).amount(250L).build()
+//          )
+//        )
+//        .publishDate(LocalDateTime.now().minusDays(8))
+//        .build();
+//
+//    given(spreadController.getSpreadInfo(2, "b", "err")).willThrow();
+//
+//    mockMvc.perform(get("/spread/err")
+//      .header("X-USER-ID", 2)
+//      .header("X-ROOM-ID", "b")
+//    ).andExpect(status().is4xxClientError())
+//      .andDo(print());
+//  }
 }

@@ -2,10 +2,10 @@ package com.kakaopay.spread.controller;
 
 import com.kakaopay.spread.domain.DivideSpreadMoney;
 import com.kakaopay.spread.domain.SpreadTicket;
-import com.kakaopay.spread.dto.spread.SpreadRequestDto;
-import com.kakaopay.spread.dto.spread.SpreadResponseDto;
-import com.kakaopay.spread.repository.RoomRepository;
-import com.kakaopay.spread.service.SpreadMoneyService;
+import com.kakaopay.spread.dto.spread.*;
+import com.kakaopay.spread.service.CreateSpreadService;
+import com.kakaopay.spread.service.ReceiveSpreadService;
+import com.kakaopay.spread.service.SearchSpreadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +17,29 @@ import java.util.List;
 public class SpreadController {
 
   @Autowired
-  private SpreadMoneyService spreadMoneyService;
+  private CreateSpreadService createSpreadService;
+
+  @Autowired
+  private ReceiveSpreadService receiveSpreadService;
+
+  @Autowired
+  private SearchSpreadService searchSpreadService;
 
   @PostMapping("/spread")
   public SpreadResponseDto spreadMoney(
     @RequestHeader(name = "X-USER-ID") long userId,
     @RequestHeader(name = "X-ROOM-ID") String roomId,
-    @RequestBody SpreadRequestDto spreadRequestDto) {
+    @RequestBody SpreadCreateReqDto spreadCreateReqDto) {
 
-    SpreadResponseDto spreadResponseDto = SpreadResponseDto.of(spreadMoneyService.spreadMoney(spreadRequestDto, userId, roomId));
+    SpreadResponseDto spreadResponseDto = SpreadResponseDto.of(
+      createSpreadService.spreadMoney(
+        CreateSpreadDto.builder()
+          .userId(userId)
+          .roomId(roomId)
+          .amount(spreadCreateReqDto.getAmount())
+          .headCount(spreadCreateReqDto.getHeadCount())
+          .build()
+      ));
     log.info("spread result : {}", spreadResponseDto);
     return spreadResponseDto;
   }
@@ -34,15 +48,15 @@ public class SpreadController {
   public void receiveSpreadMoney(@RequestHeader(name = "X-USER-ID") long userId,
                                  @RequestHeader(name = "X-ROOM-ID") String roomId,
                                  @PathVariable(name = "token") String token) {
-    spreadMoneyService.receiveMoney(userId, roomId, token);
+    receiveSpreadService.receiveMoney(ReceiveSpreadDto.builder().userId(userId).roomId(roomId).token(token).build());
   }
 
   @GetMapping("/spread/{token}")
   public SpreadResponseDto getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
                                          @RequestHeader(name = "X-ROOM-ID") String roomId,
                                          @PathVariable(name = "token") String token) {
-    SpreadTicket spreadTicket = spreadMoneyService.getSpreadTicket(token, userId, roomId);
-    List<DivideSpreadMoney> divideSpreadMoneyList = spreadMoneyService.getDivideSpreadMoneyList(token);
+    SpreadTicket spreadTicket = searchSpreadService.getSpreadTicket(SearchSpreadDto.builder().userId(userId).roomId(roomId).token(token).build());
+    List<DivideSpreadMoney> divideSpreadMoneyList = searchSpreadService.getDivideSpreadMoneyList(token);
     return SpreadResponseDto.of(spreadTicket, divideSpreadMoneyList);
   }
 }

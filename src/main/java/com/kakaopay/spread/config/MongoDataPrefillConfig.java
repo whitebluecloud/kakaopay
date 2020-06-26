@@ -19,7 +19,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration
 @AutoConfigureAfter(value = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
-//@ConditionalOnResource(resources = {"classpath:mongo/user.json", "classpath:mongo/room.json"})
 @Slf4j
 public class MongoDataPrefillConfig {
 
