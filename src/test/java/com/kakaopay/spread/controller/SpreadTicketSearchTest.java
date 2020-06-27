@@ -56,7 +56,7 @@ public class SpreadTicketSearchTest {
         )
         .publishDate(LocalDateTime.now())
         .build();
-    given(spreadController.getSpreadInfo(1, "a", "abc")).willReturn(spreadResponseDto);
+    given(spreadController.searchSpread(1, "a", "abc")).willReturn(spreadResponseDto);
 
     mockMvc.perform(get("/spread/abc")
       .header("X-USER-ID", 1)
@@ -80,7 +80,7 @@ public class SpreadTicketSearchTest {
         .publishDate(LocalDateTime.now().minusDays(8))
         .build();
 
-    given(spreadController.getSpreadInfo(2, "b", "err")).willThrow();
+    given(spreadController.searchSpread(2, "b", "err")).willThrow();
 
     mockMvc.perform(get("/spread/err")
       .header("X-USER-ID", 2)

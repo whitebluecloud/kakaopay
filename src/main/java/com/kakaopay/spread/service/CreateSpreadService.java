@@ -4,8 +4,13 @@ import com.kakaopay.spread.domain.DivideSpreadMoney;
 import com.kakaopay.spread.domain.SpreadTicket;
 import com.kakaopay.spread.domain.SpreadTicketFactory;
 import com.kakaopay.spread.dto.spread.CreateSpreadDto;
+import com.kakaopay.spread.dto.spread.SpreadResponseDto;
+import com.kakaopay.spread.exception.CreateSpreadException;
+import com.kakaopay.spread.exception.constant.CreateSpreadConstant;
 import com.kakaopay.spread.repository.DivideSpreadMoneyRepository;
+import com.kakaopay.spread.repository.RoomRepository;
 import com.kakaopay.spread.repository.SpreadTicketRepository;
+import com.kakaopay.spread.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,9 +28,24 @@ public class CreateSpreadService {
   private SpreadTicketRepository spreadTicketRepository;
 
   @Autowired
+  private UserRepository userRepository;
+
+  @Autowired
+  private RoomRepository roomRepository;
+
+  @Autowired
   private DivideSpreadMoneyRepository divideSpreadMoneyRepository;
 
-  public SpreadTicket spreadMoney(CreateSpreadDto createSpreadDto) {
+  public SpreadResponseDto spreadMoney(CreateSpreadDto createSpreadDto) throws CreateSpreadException {
+
+    if (userRepository.findById(createSpreadDto.getUserId()).isEmpty()) {
+      throw new CreateSpreadException(CreateSpreadConstant.유효하지_않은_요청.getMsg());
+    }
+
+    if (roomRepository.findById(createSpreadDto.getRoomId()).isEmpty()) {
+      throw new CreateSpreadException(CreateSpreadConstant.유효하지_않은_요청.getMsg());
+    }
+
     SpreadTicket spreadTicket = SpreadTicketFactory.create(createSpreadDto, new Random());
     SpreadTicket savedSpreadTicket = spreadTicketRepository.save(spreadTicket);
     log.info("spreadTicket save: {}", savedSpreadTicket);
@@ -34,13 +54,11 @@ public class CreateSpreadService {
     divideSpreadMoneyRepository.saveAll(divideSpreadMoneyList);
     log.info("divideSpreadMoneyList : {}", divideSpreadMoneyList);
 
-    return spreadTicket;
+    SpreadResponseDto spreadResponseDto = SpreadResponseDto.of(spreadTicket, divideSpreadMoneyList);
+    return spreadResponseDto;
   }
 
   private List<DivideSpreadMoney> divideMoney(SpreadTicket spreadTicket) {
-    if (!isValidRequst(spreadTicket)) {
-      throw new RuntimeException();
-    }
 
     List<Long> moneyList = new ArrayList<>();
     long amount = spreadTicket.getAmount();
@@ -63,8 +81,5 @@ public class CreateSpreadService {
     return savedDivideSpreadMoneyList;
   }
 
-  private boolean isValidRequst(SpreadTicket spreadTicket) {
-    // TODO 파라미터 체크
-    return true;
-  }
+
 }

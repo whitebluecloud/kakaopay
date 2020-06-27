@@ -1,0 +1,11 @@
+POST http://localhost:8080/spread
+X-USER-ID: 1
+X-ROOM-ID: a
+Content-Type: application/json
+
+{
+  "amount": 5000,
+  "headCount": 5
+}
+
+###

@@ -34,7 +34,7 @@ public class SpreadControllerTest {
   }
 
   @Test
-  public void 뿌리기_API_단순_테스트() throws Exception {
+  public void 뿌리기_API_분배_검증_테스트() throws Exception {
     mockMvc.perform(post("/spread")
       .characterEncoding("utf-8")
       .header("X-USER-ID", 1)

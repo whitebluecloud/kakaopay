@@ -26,12 +26,12 @@ public class SpreadController {
   private SearchSpreadService searchSpreadService;
 
   @PostMapping("/spread")
-  public SpreadResponseDto spreadMoney(
+  public SpreadResponseDto createSpread(
     @RequestHeader(name = "X-USER-ID") long userId,
     @RequestHeader(name = "X-ROOM-ID") String roomId,
     @RequestBody SpreadCreateReqDto spreadCreateReqDto) {
 
-    SpreadResponseDto spreadResponseDto = SpreadResponseDto.of(
+    SpreadResponseDto spreadResponseDto =
       createSpreadService.spreadMoney(
         CreateSpreadDto.builder()
           .userId(userId)
@@ -39,22 +39,22 @@ public class SpreadController {
           .amount(spreadCreateReqDto.getAmount())
           .headCount(spreadCreateReqDto.getHeadCount())
           .build()
-      ));
-    log.info("spread result : {}", spreadResponseDto);
+      );
+    log.info("createSpread result : {}", spreadResponseDto);
     return spreadResponseDto;
   }
 
   @PutMapping("/spread/{token}")
-  public void receiveSpreadMoney(@RequestHeader(name = "X-USER-ID") long userId,
-                                 @RequestHeader(name = "X-ROOM-ID") String roomId,
-                                 @PathVariable(name = "token") String token) {
+  public void receiveSpread(@RequestHeader(name = "X-USER-ID") long userId,
+                            @RequestHeader(name = "X-ROOM-ID") String roomId,
+                            @PathVariable(name = "token") String token) {
     receiveSpreadService.receiveMoney(ReceiveSpreadDto.builder().userId(userId).roomId(roomId).token(token).build());
   }
 
   @GetMapping("/spread/{token}")
-  public SpreadResponseDto getSpreadInfo(@RequestHeader(name = "X-USER-ID") long userId,
-                                         @RequestHeader(name = "X-ROOM-ID") String roomId,
-                                         @PathVariable(name = "token") String token) {
+  public SpreadResponseDto searchSpread(@RequestHeader(name = "X-USER-ID") long userId,
+                                        @RequestHeader(name = "X-ROOM-ID") String roomId,
+                                        @PathVariable(name = "token") String token) {
     SpreadTicket spreadTicket = searchSpreadService.getSpreadTicket(SearchSpreadDto.builder().userId(userId).roomId(roomId).token(token).build());
     List<DivideSpreadMoney> divideSpreadMoneyList = searchSpreadService.getDivideSpreadMoneyList(token);
     return SpreadResponseDto.of(spreadTicket, divideSpreadMoneyList);
